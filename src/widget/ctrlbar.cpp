@@ -10,7 +10,7 @@ CtrlBar::CtrlBar(QWidget *parent):QWidget(parent),ui(new Ui::CtrlBar)
 {
     ui->setupUi(this);
     m_dLastVolumePercent = 1.0;
-
+    Init();
 }
 
 CtrlBar::~CtrlBar()

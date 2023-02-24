@@ -21,6 +21,9 @@ class CShow;
 class QLabel;
 class QCheckBox;
 class QHBoxLayout;
+class QTextEdit;
+class QMediaPlayer;
+class QComboBox;
 
 class MainWnd : public QMainWindow
 {
@@ -35,37 +38,42 @@ public:
     void styleBtnClicked();
     void openFiles();
     void saveSrt();
+    void playSpeekerVoice(QString name);
 protected:
- 
+    void keyReleaseEvent(QKeyEvent *event) override;
 private:
 	QHBoxLayout *  initStackedWnd();
     void connectSignalSlots();
     void showSrt(double dSeconds);
+    void editSrt();
 
 signals:
-	void sigChangeStackWnd(int n);
-    void sigSrtFileName(QString name);
-    void sigVideoFileName(QString name);
+    void sigPlayVideo(QString name);
+    void sigPlayOrPause();
+    void sigEditSrt();
 
 private:
     std::vector<USrt> vSrt_; 
     int nCurSrt_ = 0;
     int nTotal_ = 0 ;
     QString strFilmName_;
+    QString strCurSpeeker_;
+    bool isEditDing_ = false;  
+    bool bPlaying_ = false;  
 
     CShow * pPlayWnd_;
     QLabel* pSrtWnd_;
     QCheckBox * pAudioCheckBox_;
+    QTextEdit * pTextEdit_;
+    QMediaPlayer* pMediaPlayer_=nullptr;
+    QStackedWidget* pStackedWnd_;
+    QComboBox* pComboBox_=nullptr;
 
 	Ui::MainWndClass ui;
-	bool bPlaying_ = false; 
-	bool bMoveDrag = false;
-	bool bFullScreenPlay_ = false;
+	
 
-	int nShadowWidth_ = 0;
-    std::vector<QPushButton *> vSpeekerBtn_; 
-    QString strCurSpeeker_;
-    QStackedWidget* pStackedWnd_;
+    
+    
 
 	std::map<QString,QString> mSpeekerStye_{ 
     {"zh-CN-XiaoxiaoNeural","assistant, chat, customerservice, newscast, affectionate, angry, calm, cheerful, disgruntled, fearful, gentle, lyrical, sad, serious, poetry-reading"},
