@@ -12,14 +12,15 @@ CShow::CShow(QWidget *parent):QWidget(parent),qActionGroup_(this),qMenu_(this)
 {
     setAcceptDrops(true);
     setMouseTracking(true);
+    setUpdatesEnabled(false); 
 
-    setUpdatesEnabled(false);
-    //VideoCtl::GetInstance()->OnPlayVolume(0.95);
     CVideoCtl::getInstance().onPlayVolume(0.95);
+    qActionGroup_.addAction("加载文件");
     qActionGroup_.addAction("全屏");
-    qActionGroup_.addAction("暂停");
     qActionGroup_.addAction("停止");
     qMenu_.addActions(qActionGroup_.actions());
+    connect(&qActionGroup_, &QActionGroup::triggered, this, &CShow::onActionsTriggered);
+    
 }
 
 CShow::~CShow(){}
@@ -29,16 +30,6 @@ void CShow::onStopFinished()
     update();
 }
 
-void CShow::dropEvent(QDropEvent* event)
-{
-    QList<QUrl> urls = event->mimeData()->urls();
-    if (urls.isEmpty())   
-        return;
-
-    QString strFileName = urls[0].toLocalFile();
-    qDebug() << strFileName;
-    emit SigOpenFile(strFileName);    
-}
 
 void CShow::onFrameDimensionsChanged(int nFrameWidth, int nFrameHeight)
 {
@@ -48,23 +39,10 @@ void CShow::onFrameDimensionsChanged(int nFrameWidth, int nFrameHeight)
     changeShow();
 }
 
-bool CShow::init()
-{
-    //SigPlay可删掉，没有发现其它的引用
-    connect(this, &CShow::SigPlay, this, &CShow::onPlay);
-    connect(&qActionGroup_, &QActionGroup::triggered, this, &CShow::onActionsTriggered);
-    return true;
-}
 
 void CShow::onPlay(QString strFile)
 {
-    //VideoCtl::GetInstance()->StartPlay(strFile,  winId());
     CVideoCtl::getInstance().startPlay(strFile, winId());
-}
-
-void CShow::dragEnterEvent(QDragEnterEvent* event)
-{
-    event->acceptProposedAction();
 }
 
 void CShow::resizeEvent(QResizeEvent* event)
@@ -73,38 +51,13 @@ void CShow::resizeEvent(QResizeEvent* event)
     changeShow();
 }
 
-void CShow::keyReleaseEvent(QKeyEvent* event)
-{
-    qDebug() << "in CShow::keyPressEvent:" << event->key();
-    switch (event->key())
-    {
-    case Qt::Key_Return://全屏
-        SigFullScreen();
-        break;
-    case Qt::Key_Left://后退5s
-        emit SigSeekBack();
-        break;
-    case Qt::Key_Right://前进5s
-        qDebug() << "前进5s";
-        emit SigSeekForward();
-        break;
-    case Qt::Key_Up://增加10音量
-        emit SigAddVolume();
-        break;
-    case Qt::Key_Down://减少10音量
-        emit SigSubVolume();
-        break;   
-    default:
-        QWidget::keyPressEvent(event);
-        break;
-    }
-}
 
 void CShow::mousePressEvent(QMouseEvent* event)
 {
     if (event->buttons() & Qt::RightButton)
     {
-        emit SigShowMenu();
+        QPoint globalPos = event->globalPos();       
+        qMenu_.exec(globalPos);   
     }
     QWidget::mousePressEvent(event);
 }
@@ -112,17 +65,17 @@ void CShow::mousePressEvent(QMouseEvent* event)
 void CShow::onActionsTriggered(QAction* action)
 {
     QString strAction = action->text();
-    if (strAction == "全屏")
+    if (strAction == "加载文件")
     {
-        emit SigFullScreen();
+        emit sigOpenFiles();
     }
     else if (strAction == "停止")
     {
-        emit SigStop();
+        emit sigStop();
     }
-    else if (strAction == "暂停" || strAction == "播放")
+    else if (strAction == "全屏")
     {
-        emit SigPlayOrPause();
+        emit sigFullScreen();
     }
 }
 
